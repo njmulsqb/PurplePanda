@@ -185,10 +185,10 @@ def main():
                 ))
 
         # First round of functions
-        PurplePanda().start_discovery(functions)
+        #PurplePanda().start_discovery(functions)
 
         # Second round of functions
-        PurplePanda().start_discovery(functions2)
+       # PurplePanda().start_discovery(functions2)
 
         # Perform a combined analysis
         flags={'nmap':nmap}

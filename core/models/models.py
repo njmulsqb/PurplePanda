@@ -24,9 +24,11 @@ class PublicIP(CustomOGM):
     gcp_sqlinstances = RelatedFrom("GcpSqlInstance", "HAS_IP")
     k8s_service = RelatedFrom("K8sService", "HAS_IP")
     public_domains = RelatedFrom("PublicDomain", "HAS_IP")
-    k8s_mutatingwebhookconfigs = RelatedFrom("K8sMutatingWebhookConfig", "HAS_IP")
+    k8s_mutatingwebhookconfigs = RelatedFrom(
+        "K8sMutatingWebhookConfig", "HAS_IP")
     concourse_workers = RelatedFrom("ConcurseWorker", "HAS_IP")
     gh_webhooks = RelatedFrom(GithubWebhook, "HAS_IP")
+
 
 class PublicPort(CustomOGM):
     __primarylabel__ = "PublicPort"
@@ -34,7 +36,17 @@ class PublicPort(CustomOGM):
 
     port = Property()
 
+    service = RelatedTo("NetworkService", "HAS_SERVICE")
     public_ips = RelatedFrom(PublicIP, "HAS_PORT")
+
+
+class NetworkService(CustomOGM):
+    __primarylabel__ = "NetworkService"
+    __primarykey__ = "service"
+
+    service = Property()
+    public_port = RelatedFrom(PublicPort, "HAS_SERVICE")
+
 
 class PublicDomain(CustomOGM):
     __primarylabel__ = "PublicDomain"
@@ -51,9 +63,11 @@ class PublicDomain(CustomOGM):
     k8s_service = RelatedFrom("K8sService", "HAS_DOMAIN")
     k8s_ingress = RelatedFrom("K8sIngress", "HAS_DOMAIN")
     public_ips = RelatedTo(PublicIP, "HAS_IP")
-    k8s_mutatingwebhookconfigs = RelatedFrom("K8sMutatingWebhookConfig", "HAS_DOMAIN")
+    k8s_mutatingwebhookconfigs = RelatedFrom(
+        "K8sMutatingWebhookConfig", "HAS_DOMAIN")
     concourse_workers = RelatedFrom("ConcourseWorker", "HAS_DOMAIN")
     gh_webhooks = RelatedFrom(GithubWebhook, "HAS_DOMAIN")
+
 
 class RepoPpalPrivesc(CustomOGM):
     __primarylabel__ = "RepoPpalPrivesc"
@@ -70,7 +84,8 @@ class CloudCluster(CustomOGM):
 
     k8s_namespaces = RelatedFrom("K8sNamespace", "HAS_NAMESPACE")
     k8s_nodes = RelatedFrom("K8sNode", "HAS_NODE")
-    k8s_mutatingwebhookconfigurations = RelatedFrom("K8sMutatingWebhookConfig", "HAS_MUTATINGWEBHOOKCONFIG")
+    k8s_mutatingwebhookconfigurations = RelatedFrom(
+        "K8sMutatingWebhookConfig", "HAS_MUTATINGWEBHOOKCONFIG")
 
 
 ########################
@@ -88,17 +103,20 @@ class ContainerImage(CustomOGM):
 
     def save(self, *args, **kwargs):
         ret = super().save(*args, **kwargs)
-        
+
         if "gcr.io/" in self.name and not "k8s.gcr.io/" in self.name and not "gke.gcr.io/" in self.name:
             from intel.google.models import GcpStorage
-            zone_subdomain = self.name.split(".gcr.io/")[0] + "." if ".gcr.io/" in self.name else "" # Get "eu." in "eu.gcr.io/..."
+            zone_subdomain = self.name.split(
+                ".gcr.io/")[0] + "." if ".gcr.io/" in self.name else ""  # Get "eu." in "eu.gcr.io/..."
             project_name = self.name.split("gcr.io/")[1].split("/")[0]
             bucket_name = f"{zone_subdomain}artifacts.{project_name}.appspot.com"
-            storage_obj = GcpStorage(name=bucket_name, contains_images=True).save()
+            storage_obj = GcpStorage(
+                name=bucket_name, contains_images=True).save()
             self.image_containers.update(storage_obj)
             return super().save(*args, **kwargs)
-        
+
         return ret
+
 
 class StoresContainerImage(CustomOGM):
     __primarylabel__ = "StoresContainerImage"
@@ -110,6 +128,7 @@ class StoresContainerImage(CustomOGM):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.label = True
+
 
 class RunsContainerImage(CustomOGM):
     __primarylabel__ = "RunsContainerImage"
