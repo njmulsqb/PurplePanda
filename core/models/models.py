@@ -44,6 +44,7 @@ class NetworkService(CustomOGM):
     __primarylabel__ = "NetworkService"
     __primarykey__ = "service"
 
+
     service = Property()
     public_port = RelatedFrom(PublicPort, "HAS_SERVICE")
 
